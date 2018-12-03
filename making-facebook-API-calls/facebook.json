@@ -1,0 +1,13 @@
+{
+    "user": {
+        "short_token": "add this manually",
+        "long_token": "None"
+    },
+    "app": {
+        "id": "add this manually",
+        "secret": "add this manually"
+    },
+    "page": {
+        "token": "None",
+        "id": "add this manually"}
+ }

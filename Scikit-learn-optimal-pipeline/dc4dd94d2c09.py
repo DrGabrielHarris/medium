@@ -9,16 +9,18 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import GridSearchCV
 import graphviz as gv
 
-# read data from csv
+# read sample data from csv (github.com/DrGabrielA81/datasets)
 df = pd.read_csv('AudienceChurn.dataSample.csv', encoding='latin1', index_col='customer_no')
 df.info()
 
-# split data
+# get target class and attributes
+# split data 70/30
+# keep all as Pandas objects
 y = df['churned']
 X = df.drop('churned', axis=1)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-# build pipelines for attributes
+# build pipelines for numerical/categorical attributes
 num_transformer = Pipeline(steps=[
     ('imputer', SimpleImputer(strategy='median')),
     ('scaler', StandardScaler())])
@@ -29,7 +31,7 @@ cat_transformer = Pipeline(steps=[
                              sparse=False,
                              handle_unknown='ignore'))])
 
-# compose pipelines into one using column transformer
+# compose previous pipelines into one using column transformer
 num_attrs = X.columns[X.dtypes != object].tolist()
 cat_attrs = X.columns[X.dtypes == object].tolist()
 
@@ -38,17 +40,19 @@ preprocessor = ColumnTransformer(transformers=[
     ('cat', cat_transformer, cat_attrs)],
     remainder='drop')
 
-# build full pipeline
+# build full pipeline including the classifier
 tree = DecisionTreeClassifier(presort=True, random_state=42)
 pipeline = Pipeline(steps=[('preprocessor', preprocessor),
                            ('classifier', tree)])
 
-# create a grid search and fit model
+# create a grid search
 params = {'classifier__criterion': ['entropy', 'gini'],
           'classifier__max_depth': [5, 6, 7],
           'classifier__min_samples_leaf': [4, 5, 6]}
 
 classifier_gs = GridSearchCV(pipeline, params, scoring='roc_auc', cv=5, verbose=1)
+
+# fit model
 classifier_gs.fit(X_train, y_train)
 
 # access model results
